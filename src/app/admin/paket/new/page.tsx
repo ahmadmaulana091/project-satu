@@ -29,7 +29,7 @@ export default function NewPaketPage() {
   const handleUpload = async (file: File) => {
     const fileExt = file.name.split(".").pop();
     const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `posters/${fileName}`;
+    const filePath = `${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from("posters")
@@ -65,7 +65,18 @@ export default function NewPaketPage() {
       router.push("/admin/paket");
       router.refresh();
     } catch (err: any) {
-      alert("Error: " + err.message);
+      console.error("DEBUG - Full Error Object:", err);
+      
+      const errorMessage = err.message || err.error_description || "Unknown error";
+      const errorDetails = err.details || "";
+      
+      if (errorMessage === "Object not found") {
+        alert("Error: Bucket 'posters' tidak ditemukan. Pastikan sudah membuat bucket 'posters' di Storage.");
+      } else if (err.code === "42501") {
+        alert("Error: Izin ditolak (RLS). Pastikan sudah menjalankan SQL Policy untuk storage dan tabel paket_umroh.");
+      } else {
+        alert(`Error: ${errorMessage}\nDetail: ${errorDetails}`);
+      }
     } finally {
       setLoading(false);
     }
